@@ -1,4 +1,4 @@
-const supabase = require('../config/supabaseClient');
+const { supabase, supabaseAdmin } = require("../config/supabaseClient");
 
 // ✅ Approve a Payment
 const approvePayment = async (req, res) => {
@@ -73,9 +73,9 @@ const getAllTransactions = async (req, res) => {
 
     if (error) {
         console.error('Error fetching transactions:', error);
-        return res.status(500).json({ 
+        return res.status(500).json({
             success: false,
-            error: "Error fetching transactions" 
+            error: "Error fetching transactions"
         });
     }
 
@@ -100,9 +100,9 @@ const editTransaction = async (req, res) => {
     const { transaction_id, new_duration } = req.body;
 
     if (!transaction_id || !new_duration) {
-        return res.status(400).json({ 
+        return res.status(400).json({
             success: false,
-            error: "Transaction ID and new duration are required" 
+            error: "Transaction ID and new duration are required"
         });
     }
 
@@ -116,9 +116,9 @@ const editTransaction = async (req, res) => {
             .single();
 
         if (error) {
-            return res.status(500).json({ 
+            return res.status(500).json({
                 success: false,
-                error: "Error updating transaction duration" 
+                error: "Error updating transaction duration"
             });
         }
 
