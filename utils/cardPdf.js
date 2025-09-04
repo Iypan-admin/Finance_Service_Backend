@@ -24,7 +24,7 @@ const TEMPLATES = {
 // --- Local font paths ---
 const FONT_PATHS = {
     poppins: path.join(__dirname, "..", "fonts", "Poppins-Bold.ttf"),
-    orbitron: path.join(__dirname, "..", "fonts", "orbitron-bold.otf"),
+    orbitron: path.join(__dirname, "..", "fonts", "Orbitron-Bold.ttf"),
     montserrat: path.join(__dirname, "..", "fonts", "montserrat-semibold.ttf"),
 };
 
@@ -112,7 +112,7 @@ function makeTextSVG({ width, height, cardKey, name, cardNumber, validFrom, vali
         }
         @font-face {
           font-family: 'Orbitron';
-          src: url('data:font/otf;base64,${FONTS.orbitron}') format('opentype');
+          src: url('data:font/ttf;base64,${FONTS.orbitron}') format('opentype');
         }
         @font-face {
           font-family: 'Montserrat';
