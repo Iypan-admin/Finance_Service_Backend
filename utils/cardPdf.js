@@ -5,7 +5,7 @@ const sharp = require("sharp");
 const PDFDocument = require("pdfkit");
 const { supabaseAdmin } = require("../config/supabaseClient");
 
-// --- Template image paths (adjust filenames if yours differ) ---
+// --- Template image paths ---
 const TEMPLATES = {
     edupass: {
         front: path.join(__dirname, "..", "templates", "edu_front.jpg"),
@@ -26,9 +26,18 @@ const FONT_PATHS = {
     poppins: path.join(__dirname, "..", "fonts", "Poppins-Bold.ttf"),
     orbitron: path.join(__dirname, "..", "fonts", "orbitron-bold.otf"),
     montserrat: path.join(__dirname, "..", "fonts", "montserrat-semibold.ttf"),
-
 };
-console.log("FONT_PATHS:", FONT_PATHS);
+
+// --- Convert fonts to base64 ---
+function fontToBase64(filePath) {
+    return fs.readFileSync(filePath).toString("base64");
+}
+const FONTS = {
+    poppins: fontToBase64(FONT_PATHS.poppins),
+    orbitron: fontToBase64(FONT_PATHS.orbitron),
+    montserrat: fontToBase64(FONT_PATHS.montserrat),
+};
+
 // --- Positions and sizes (relative percentages) ---
 const POSITIONS = {
     edupass: {
@@ -36,7 +45,6 @@ const POSITIONS = {
         number: { x: 0.10, y: 0.78, size: 38, letterSpacing: 2 },
         validLine: { xLeft: 0.10, xRight: 0.55, y: 0.86, size: 24 }
     },
-
     scholarpass: {
         name: { x: 0.10, y: 0.68, size: 36 },
         number: { x: 0.10, y: 0.78, size: 32, letterSpacing: 2 },
@@ -71,9 +79,6 @@ function formatDate(dateStr) {
 
 /**
  * Build SVG overlay
- * - Name: only value
- * - Card number: only value
- * - Single line: "VALID FROM: <value>"  (left) and "VALID THRU: <value>" (right)
  */
 function makeTextSVG({ width, height, cardKey, name, cardNumber, validFrom, validThru }) {
     const pos = POSITIONS[cardKey];
@@ -103,15 +108,15 @@ function makeTextSVG({ width, height, cardKey, name, cardNumber, validFrom, vali
       <style>
         @font-face {
           font-family: 'Poppins';
-          src: url('file://${FONT_PATHS.poppins}');
+          src: url('data:font/ttf;base64,${FONTS.poppins}') format('truetype');
         }
         @font-face {
           font-family: 'Orbitron';
-          src: url('file://${FONT_PATHS.orbitron}');
+          src: url('data:font/otf;base64,${FONTS.orbitron}') format('opentype');
         }
         @font-face {
           font-family: 'Montserrat';
-          src: url('file://${FONT_PATHS.montserrat}');
+          src: url('data:font/ttf;base64,${FONTS.montserrat}') format('truetype');
         }
 
         .name {
@@ -139,7 +144,6 @@ function makeTextSVG({ width, height, cardKey, name, cardNumber, validFrom, vali
 
       <text x="${nx}" y="${ny}" class="name">${escapeXml(name ?? "")}</text>
       <text x="${cx}" y="${cy}" class="number">${escapeXml(cardNumber ?? "")}</text>
-
       <text x="${fx}" y="${fy}" class="valid">${escapeXml(leftValid)}</text>
       <text x="${tx}" y="${ty}" class="valid">${escapeXml(rightValid)}</text>
     </svg>
@@ -152,7 +156,6 @@ async function renderFront(cardName, { name, cardNumber, validFrom, validThru })
     const tpl = TEMPLATES[cardKey];
     if (!tpl) throw new Error(`Unknown card template: ${cardName}`);
 
-    // Ensure template file exists
     if (!fs.existsSync(tpl.front)) throw new Error(`Front template not found: ${tpl.front}`);
     if (!fs.existsSync(tpl.back)) throw new Error(`Back template not found: ${tpl.back}`);
 
@@ -172,7 +175,7 @@ async function renderFront(cardName, { name, cardNumber, validFrom, validThru })
     return { buffer: outBuf, width: meta.width, height: meta.height, backPath: tpl.back };
 }
 
-// Build a 2-page PDF (front + back) and return Buffer
+// Build a 2-page PDF (front + back)
 async function makePdfBuffer(frontJpegBuffer, backImagePath) {
     return await new Promise((resolve, reject) => {
         const doc = new PDFDocument({ autoFirstPage: false });
@@ -197,10 +200,7 @@ async function makePdfBuffer(frontJpegBuffer, backImagePath) {
     });
 }
 
-/**
- * Generate + Upload to Supabase Storage
- * - returns { storagePath, publicUrl }
- */
+// Generate + Upload to Supabase Storage
 async function generateAndUploadCardPDF({
     cardName, name, cardNumber, validFrom, validThru,
     bucket = "elite-cards", pathPrefix = "cards/"
@@ -208,29 +208,23 @@ async function generateAndUploadCardPDF({
     if (!cardName) throw new Error("cardName is required");
     if (!cardNumber) throw new Error("cardNumber is required");
 
-    // 1) Render front with overlay
     const { buffer: frontBuf, backPath } = await renderFront(cardName, {
         name, cardNumber, validFrom, validThru
     });
 
-    // 2) Build PDF buffer
     const pdfBuffer = await makePdfBuffer(frontBuf, backPath);
 
-    // 3) Prepare safe storage path (replace spaces and slashes)
     const safeCardNumber = String(cardNumber).replace(/[^\w\-]/g, "_");
     const storagePath = `${pathPrefix}${safeCardNumber}.pdf`;
 
-    // 4) Upload to Supabase Storage (upsert)
     const { error: upErr } = await supabaseAdmin.storage
         .from(bucket)
         .upload(storagePath, pdfBuffer, { contentType: "application/pdf", upsert: true });
 
     if (upErr) {
-        // Provide useful error
         throw new Error(`Storage upload error: ${upErr.message || JSON.stringify(upErr)}`);
     }
 
-    // 5) Get public URL
     const { data: pub } = supabaseAdmin.storage.from(bucket).getPublicUrl(storagePath);
     const publicUrl = pub?.publicUrl ?? null;
 
