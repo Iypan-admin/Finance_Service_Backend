@@ -107,17 +107,18 @@ function makeTextSVG({ width, height, cardKey, name, cardNumber, validFrom, vali
     <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
       <style>
         @font-face {
-          font-family: 'Poppins';
-          src: url('data:font/ttf;base64,${FONTS.poppins}') format('truetype');
-        }
-        @font-face {
-          font-family: 'Orbitron';
-          src: url('data:font/ttf;base64,${FONTS.orbitron}') format('opentype');
-        }
-        @font-face {
-          font-family: 'Montserrat';
-          src: url('data:font/ttf;base64,${FONTS.montserrat}') format('truetype');
-        }
+  font-family: 'Poppins';
+  src: url('data:font/ttf;base64,${FONTS.poppins}') format('truetype');
+}
+@font-face {
+  font-family: 'Orbitron';
+  src: url('data:font/ttf;base64,${FONTS.orbitron}') format('truetype');
+}
+@font-face {
+  font-family: 'Montserrat';
+  src: url('data:font/ttf;base64,${FONTS.montserrat}') format('truetype');
+}
+
 
         .name {
           font-family: 'Poppins';
