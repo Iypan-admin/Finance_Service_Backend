@@ -21,8 +21,14 @@ const TEMPLATES = {
     }
 };
 
+// --- Local font paths ---
+const FONT_PATHS = {
+    poppins: path.join(__dirname, "..", "fonts", "Poppins-Bold.ttf"),
+    orbitron: path.join(__dirname, "..", "fonts", "Orbitron-Bold.ttf"),
+    montserrat: path.join(__dirname, "..", "fonts", "Montserrat-SemiBold.ttf"),
+};
+
 // --- Positions and sizes (relative percentages) ---
-// Tweak these to perfectly match your templates.
 const POSITIONS = {
     edupass: {
         name: { x: 0.10, y: 0.68, size: 40 },
@@ -51,6 +57,7 @@ function escapeXml(unsafe) {
         '"': "&quot;"
     }[c]));
 }
+
 function formatDate(dateStr) {
     if (!dateStr) return "";
     const d = new Date(dateStr);
@@ -60,6 +67,7 @@ function formatDate(dateStr) {
     const yyyy = d.getFullYear();
     return `${dd}-${mm}-${yyyy}`;
 }
+
 /**
  * Build SVG overlay
  * - Name: only value
@@ -89,34 +97,44 @@ function makeTextSVG({ width, height, cardKey, name, cardNumber, validFrom, vali
     const leftValid = `VALID FROM: ${validFrom ? formatDate(validFrom) : ""}`;
     const rightValid = `VALID THRU: ${validThru ? formatDate(validThru) : ""}`;
 
-
     return Buffer.from(`
     <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
       <style>
-  .name {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 800;
-    font-size: ${ns}px;
-    fill: #ffffff;
-    letter-spacing: 1px;
-  }
-  .number {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 900;
-    font-size: ${cs}px;
-    fill: #ffffff;
-    letter-spacing: ${tracking + 1}px;
-  }
-  .valid {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
-    font-size: ${fs}px;
-    fill: #ffffff;
-    letter-spacing: 0.5px;
-  }
-</style>
+        @font-face {
+          font-family: 'Poppins';
+          src: url('file://${FONT_PATHS.poppins}');
+        }
+        @font-face {
+          font-family: 'Orbitron';
+          src: url('file://${FONT_PATHS.orbitron}');
+        }
+        @font-face {
+          font-family: 'Montserrat';
+          src: url('file://${FONT_PATHS.montserrat}');
+        }
 
-
+        .name {
+          font-family: 'Poppins';
+          font-weight: 800;
+          font-size: ${ns}px;
+          fill: #ffffff;
+          letter-spacing: 1px;
+        }
+        .number {
+          font-family: 'Orbitron';
+          font-weight: 900;
+          font-size: ${cs}px;
+          fill: #ffffff;
+          letter-spacing: ${tracking + 1}px;
+        }
+        .valid {
+          font-family: 'Montserrat';
+          font-weight: 600;
+          font-size: ${fs}px;
+          fill: #ffffff;
+          letter-spacing: 0.5px;
+        }
+      </style>
 
       <text x="${nx}" y="${ny}" class="name">${escapeXml(name ?? "")}</text>
       <text x="${cx}" y="${cy}" class="number">${escapeXml(cardNumber ?? "")}</text>
