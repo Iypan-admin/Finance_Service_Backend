@@ -21,23 +21,6 @@ const TEMPLATES = {
     }
 };
 
-// --- Local font paths ---
-const FONT_PATHS = {
-    poppins: path.join(__dirname, "..", "fonts", "Poppins-Bold.ttf"),
-    orbitron: path.join(__dirname, "..", "fonts", "Orbitron-Bold.ttf"),
-    montserrat: path.join(__dirname, "..", "fonts", "montserrat-semibold.ttf"),
-};
-
-// --- Convert fonts to base64 ---
-function fontToBase64(filePath) {
-    return fs.readFileSync(filePath).toString("base64");
-}
-const FONTS = {
-    poppins: fontToBase64(FONT_PATHS.poppins),
-    orbitron: fontToBase64(FONT_PATHS.orbitron),
-    montserrat: fontToBase64(FONT_PATHS.montserrat),
-};
-
 // --- Positions and sizes (relative percentages) ---
 const POSITIONS = {
     edupass: {
@@ -78,7 +61,7 @@ function formatDate(dateStr) {
 }
 
 /**
- * Build SVG overlay
+ * Build SVG overlay (using system fonts, no embedding)
  */
 function makeTextSVG({ width, height, cardKey, name, cardNumber, validFrom, validThru }) {
     const pos = POSITIONS[cardKey];
@@ -106,37 +89,23 @@ function makeTextSVG({ width, height, cardKey, name, cardNumber, validFrom, vali
     return Buffer.from(`
     <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
       <style>
-        @font-face {
-  font-family: 'Poppins';
-  src: url('data:font/ttf;base64,${FONTS.poppins}') format('truetype');
-}
-@font-face {
-  font-family: 'Orbitron';
-  src: url('data:font/ttf;base64,${FONTS.orbitron}') format('truetype');
-}
-@font-face {
-  font-family: 'Montserrat';
-  src: url('data:font/ttf;base64,${FONTS.montserrat}') format('truetype');
-}
-
-
         .name {
-          font-family: 'Poppins';
-          font-weight: 800;
+          font-family: 'Times New Roman', serif;
+          font-weight: bold;
           font-size: ${ns}px;
           fill: #ffffff;
           letter-spacing: 1px;
         }
         .number {
-          font-family: 'Orbitron';
-          font-weight: 900;
+          font-family: 'Courier New', monospace;
+          font-weight: bold;
           font-size: ${cs}px;
           fill: #ffffff;
           letter-spacing: ${tracking + 1}px;
         }
         .valid {
-          font-family: 'Montserrat';
-          font-weight: 600;
+          font-family: Arial, sans-serif;
+          font-weight: normal;
           font-size: ${fs}px;
           fill: #ffffff;
           letter-spacing: 0.5px;
