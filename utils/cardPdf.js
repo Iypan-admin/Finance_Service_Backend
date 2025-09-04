@@ -21,6 +21,15 @@ const TEMPLATES = {
     }
 };
 
+// --- Local font path (DejaVuSans) ---
+const FONT_PATH = path.join(__dirname, "..", "fonts", "DejaVuSans.ttf");
+
+// --- Convert font to base64 ---
+function fontToBase64(filePath) {
+    return fs.readFileSync(filePath).toString("base64");
+}
+const DEJAVU_FONT = fontToBase64(FONT_PATH);
+
 // --- Positions and sizes (relative percentages) ---
 const POSITIONS = {
     edupass: {
@@ -61,7 +70,7 @@ function formatDate(dateStr) {
 }
 
 /**
- * Build SVG overlay (using system fonts, no embedding)
+ * Build SVG overlay with DejaVuSans font
  */
 function makeTextSVG({ width, height, cardKey, name, cardNumber, validFrom, validThru }) {
     const pos = POSITIONS[cardKey];
@@ -89,23 +98,27 @@ function makeTextSVG({ width, height, cardKey, name, cardNumber, validFrom, vali
     return Buffer.from(`
     <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
       <style>
+        @font-face {
+          font-family: 'DejaVuSans';
+          src: url('data:font/ttf;base64,${DEJAVU_FONT}') format('truetype');
+        }
+
         .name {
-          font-family: 'Times New Roman', serif;
+          font-family: 'DejaVuSans';
           font-weight: bold;
           font-size: ${ns}px;
           fill: #ffffff;
           letter-spacing: 1px;
         }
         .number {
-          font-family: 'Courier New', monospace;
+          font-family: 'DejaVuSans';
           font-weight: bold;
           font-size: ${cs}px;
           fill: #ffffff;
           letter-spacing: ${tracking + 1}px;
         }
         .valid {
-          font-family: Arial, sans-serif;
-          font-weight: normal;
+          font-family: 'DejaVuSans';
           font-size: ${fs}px;
           fill: #ffffff;
           letter-spacing: 0.5px;
