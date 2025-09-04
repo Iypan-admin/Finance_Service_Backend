@@ -24,10 +24,11 @@ const TEMPLATES = {
 // --- Local font paths ---
 const FONT_PATHS = {
     poppins: path.join(__dirname, "..", "fonts", "Poppins-Bold.ttf"),
-    orbitron: path.join(__dirname, "..", "fonts", "Orbitron-Bold.ttf"),
-    montserrat: path.join(__dirname, "..", "fonts", "Montserrat-SemiBold.ttf"),
-};
+    orbitron: path.join(__dirname, "..", "fonts", "orbitron-bold.otf"),
+    montserrat: path.join(__dirname, "..", "fonts", "montserrat-semibold.ttf"),
 
+};
+console.log("FONT_PATHS:", FONT_PATHS);
 // --- Positions and sizes (relative percentages) ---
 const POSITIONS = {
     edupass: {
