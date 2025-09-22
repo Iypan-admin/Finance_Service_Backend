@@ -9,44 +9,84 @@ const approvePayment = async (req, res) => {
     }
 
     try {
-        // 1️⃣ Fetch payment details from student_course_payment table
+        // 1️⃣ Fetch payment details
         const { data: payment, error: fetchError } = await supabase
-            .from('student_course_payment')
-            .select('*')
-            .eq('payment_id', payment_id)
+            .from("student_course_payment")
+            .select("*")
+            .eq("payment_id", payment_id)
             .single();
 
         if (fetchError || !payment) {
             return res.status(404).json({ error: "Payment not found" });
         }
 
-        const { enrollment_id, course_duration } = payment;
+        const {
+            enrollment_id,
+            course_duration,
+            payment_type,
+            current_emi,
+            emi_duration,
+        } = payment;
 
-        // 2️⃣ Approve payment (status: true)
+        // 2️⃣ Approve this payment (status: true)
         const { error: paymentError } = await supabase
-            .from('student_course_payment')
+            .from("student_course_payment")
             .update({ status: true })
-            .eq('payment_id', payment_id);
+            .eq("payment_id", payment_id);
 
         if (paymentError) {
-            return res.status(500).json({ error: "Error updating payment status" });
+            return res
+                .status(500)
+                .json({ error: "Error updating payment status" });
         }
 
-        // 3️⃣ Update enrollment status & end_date
-        const currentDate = new Date();
-        const newEndDate = new Date(currentDate.setMonth(currentDate.getMonth() + course_duration));
+        // 3️⃣ Calculate new end_date based on payment type
+        let newEndDate;
+        const today = new Date();
 
+        if (payment_type === "full") {
+            // Full payment → full course duration
+            newEndDate = new Date();
+            newEndDate.setMonth(newEndDate.getMonth() + course_duration);
+        } else if (payment_type === "emi") {
+            // EMI → extend 30 days from existing end_date or today
+            const { data: enrollment, error: enrollmentFetchError } =
+                await supabase
+                    .from("enrollment")
+                    .select("end_date")
+                    .eq("enrollment_id", enrollment_id)
+                    .single();
+
+            if (enrollmentFetchError || !enrollment) {
+                return res.status(404).json({ error: "Enrollment not found" });
+            }
+
+            // Use existing end_date if it's in future, otherwise today
+            const existingEndDate = enrollment.end_date
+                ? new Date(enrollment.end_date)
+                : today;
+
+            const baseDate = existingEndDate > today ? existingEndDate : today;
+            newEndDate = new Date(baseDate);
+            newEndDate.setDate(newEndDate.getDate() + 30);
+        }
+
+        // 4️⃣ Update enrollment table
         const { error: enrollmentError } = await supabase
-            .from('enrollment')
-            .update({ status: true, end_date: newEndDate.toISOString().split('T')[0] })
-            .eq('enrollment_id', enrollment_id);
+            .from("enrollment")
+            .update({
+                status: true, // immediate course access
+                end_date: newEndDate.toISOString().split("T")[0],
+            })
+            .eq("enrollment_id", enrollment_id);
 
         if (enrollmentError) {
-            return res.status(500).json({ error: "Error updating enrollment" });
+            return res
+                .status(500)
+                .json({ error: "Error updating enrollment" });
         }
 
         res.json({ message: "Payment approved successfully" });
-
     } catch (err) {
         console.error("❌ Approve payment error:", err);
         res.status(500).json({ error: "Internal server error" });
