@@ -37,9 +37,9 @@ const POSITIONS = {
     },
 
     scholarpass: {
-        name: { x: 0.10, y: 0.68, size: 36 },
-        number: { x: 0.10, y: 0.78, size: 32, letterSpacing: 2 },
-        validLine: { xLeft: 0.10, xRight: 0.55, y: 0.86, size: 18 }
+        name: { x: 0.10, y: 0.68, size: 40 },
+        number: { x: 0.10, y: 0.78, size: 38, letterSpacing: 2 },
+        validLine: { xLeft: 0.10, xRight: 0.55, y: 0.86, size: 24 }
     },
     infinitepass: {
         name: { x: 0.10, y: 0.68, size: 40 },
