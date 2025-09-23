@@ -3,7 +3,7 @@ const { supabase } = require("../config/supabaseClient");
 const cron = require("node-cron");
 
 // ⚡ Temporary: run every 1 minute for testing
-cron.schedule("*/1 * * * *", async () => {
+cron.schedule("0 0 * * *", async () => {
     try {
         const today = new Date().toISOString().split("T")[0];
 
@@ -22,6 +22,8 @@ cron.schedule("*/1 * * * *", async () => {
     } catch (err) {
         console.error("❌ Cron job error:", err);
     }
-});
+},
+    { timezone: "Asia/Kolkata" }
+);
 
-console.log("🕒 Enrollment expiry cron job started (dev test every 1 min)...");
+console.log("🕒 Enrollment expiry cron job started (once daily at 12:00 AM IST)...");
